@@ -16,16 +16,15 @@ package frc.robot.subsystems.drive;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.wpilibj.RobotController;
-import frc.robot.subsystems.drive.ModuleIO;
-import frc.robot.subsystems.drive.ModuleIO.ModuleIOInputs;
-import frc.robot.subsystems.drive.SparkMaxOdometryThread;
 
 import java.util.OptionalDouble;
 import java.util.Queue;
@@ -50,7 +49,7 @@ public class ModuleIOBarry implements ModuleIO {
   private final CANSparkMax driveSparkMax;
   private final CANSparkMax turnSparkMax;
 
-  private final Cancoder cancoder;
+  private final CANcoder cancoder;
   private final RelativeEncoder driveEncoder;
   private final StatusSignal<Double> turnAbsolutePosition;
   private final Queue<Double> timestampQueue;
@@ -136,7 +135,7 @@ public class ModuleIOBarry implements ModuleIO {
         SparkMaxOdometryThread.getInstance()
             .registerSignal(
                 () -> {
-                  double value = turnRelativeEncoder.getPosition();
+                  double value = cancoder.getPosition().getValueAsDouble();
                   if (turnSparkMax.getLastError() == REVLibError.kOk) {
                     return OptionalDouble.of(value);
                   } else {
@@ -163,9 +162,9 @@ public class ModuleIOBarry implements ModuleIO {
         Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble())
             .minus(absoluteEncoderOffset);
     inputs.turnPosition =
-        Rotation2d.fromRotations(turnRelativeEncoder.getPosition() / TURN_GEAR_RATIO);
+        Rotation2d.fromRotations(cancoder.getPosition().getValueAsDouble() / TURN_GEAR_RATIO);
     inputs.turnVelocityRadPerSec =
-        Units.rotationsPerMinuteToRadiansPerSecond(turnRelativeEncoder.getVelocity())
+        Units.rotationsPerMinuteToRadiansPerSecond(cancoder.getVelocity().getValueAsDouble())
             / TURN_GEAR_RATIO;
     inputs.turnAppliedVolts = turnSparkMax.getAppliedOutput() * turnSparkMax.getBusVoltage();
     inputs.turnCurrentAmps = new double[] {turnSparkMax.getOutputCurrent()};
