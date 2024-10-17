@@ -20,6 +20,7 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.SparkPIDController.ArbFFUnits;
 import edu.wpi.first.math.util.Units;
+import frc.robot.Constants.Ports;
 
 /**
  * NOTE: To use the Spark Flex / NEO Vortex, replace all instances of "CANSparkMax" with
@@ -28,21 +29,35 @@ import edu.wpi.first.math.util.Units;
 public class FlywheelIOSparkMax implements FlywheelIO {
   private static final double GEAR_RATIO = 1.5;
 
-  private final CANSparkMax leader = new CANSparkMax(10, MotorType.kBrushless);
-  private final RelativeEncoder encoder = leader.getEncoder();
-  private final SparkPIDController pid = leader.getPIDController();
+  private final CANSparkMax motor;
+  private final RelativeEncoder encoder;
+  private final SparkPIDController pid;
 
-  public FlywheelIOSparkMax() {
-    leader.restoreFactoryDefaults();
+  public FlywheelIOSparkMax(int index) {
+    switch (index) {
+      case 0: // Shooter
+        motor = new CANSparkMax(Ports.shooter, MotorType.kBrushless);
+        break;
+      case 1: // Intake
+        motor = new CANSparkMax(Ports.intake, MotorType.kBrushless);
+        break;
+      default:
+        throw new RuntimeException("Invalid flywheel index");
+    }
 
-    leader.setCANTimeout(250);
+    encoder = motor.getEncoder();
+    pid = motor.getPIDController();
 
-    leader.setInverted(false);
+    motor.restoreFactoryDefaults();
 
-    leader.enableVoltageCompensation(12.0);
-    leader.setSmartCurrentLimit(30);
+    motor.setCANTimeout(250);
 
-    leader.burnFlash();
+    motor.setInverted(false);
+
+    motor.enableVoltageCompensation(12.0);
+    motor.setSmartCurrentLimit(30);
+
+    motor.burnFlash();
   }
 
   @Override
@@ -50,13 +65,13 @@ public class FlywheelIOSparkMax implements FlywheelIO {
     inputs.positionRad = Units.rotationsToRadians(encoder.getPosition() / GEAR_RATIO);
     inputs.velocityRadPerSec =
         Units.rotationsPerMinuteToRadiansPerSecond(encoder.getVelocity() / GEAR_RATIO);
-    inputs.appliedVolts = leader.getAppliedOutput() * leader.getBusVoltage();
-    inputs.currentAmps = new double[] {leader.getOutputCurrent()};
+    inputs.appliedVolts = motor.getAppliedOutput() * motor.getBusVoltage();
+    inputs.currentAmps = new double[] {motor.getOutputCurrent()};
   }
 
   @Override
   public void setVoltage(double volts) {
-    leader.setVoltage(volts);
+    motor.setVoltage(volts);
   }
 
   @Override
@@ -71,7 +86,7 @@ public class FlywheelIOSparkMax implements FlywheelIO {
 
   @Override
   public void stop() {
-    leader.stopMotor();
+    motor.stopMotor();
   }
 
   @Override

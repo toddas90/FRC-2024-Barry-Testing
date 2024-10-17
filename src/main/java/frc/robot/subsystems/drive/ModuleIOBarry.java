@@ -27,6 +27,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import java.util.OptionalDouble;
 import java.util.Queue;
+import frc.robot.Constants.Ports;
 
 /**
  * Module IO implementation for SparkMax drive motor controller, SparkMax turn motor controller (NEO
@@ -61,28 +62,28 @@ public class ModuleIOBarry implements ModuleIO {
   public ModuleIOBarry(int index) {
     switch (index) {
       case 0: // Front Left
-        driveSparkMax = new CANSparkMax(8, MotorType.kBrushless);
-        turnSparkMax = new CANSparkMax(9, MotorType.kBrushless);
-        cancoder = new CANcoder(22);
-        absoluteEncoderOffset = new Rotation2d(251); // MUST BE CALIBRATED
+        driveSparkMax = new CANSparkMax(Ports.frontLeftDrive, MotorType.kBrushless);
+        turnSparkMax = new CANSparkMax(Ports.frontRightDrive, MotorType.kBrushless);
+        cancoder = new CANcoder(Ports.frontLeftEncoder);
+        absoluteEncoderOffset = new Rotation2d(Ports.frontLeftEncoderOffset);
         break;
       case 1: // Front Right
-        driveSparkMax = new CANSparkMax(2, MotorType.kBrushless);
-        turnSparkMax = new CANSparkMax(3, MotorType.kBrushless);
-        cancoder = new CANcoder(24);
-        absoluteEncoderOffset = new Rotation2d(218); // MUST BE CALIBRATED
+        driveSparkMax = new CANSparkMax(Ports.frontRightDrive, MotorType.kBrushless);
+        turnSparkMax = new CANSparkMax(Ports.frontRightTurn, MotorType.kBrushless);
+        cancoder = new CANcoder(Ports.frontRightEncoder);
+        absoluteEncoderOffset = new Rotation2d(Ports.frontRightEncoderOffset);
         break;
       case 2: // Rear Left
-        driveSparkMax = new CANSparkMax(6, MotorType.kBrushless);
-        turnSparkMax = new CANSparkMax(7, MotorType.kBrushless);
-        cancoder = new CANcoder(21);
-        absoluteEncoderOffset = new Rotation2d(105); // MUST BE CALIBRATED
+        driveSparkMax = new CANSparkMax(Ports.rearLeftDrive, MotorType.kBrushless);
+        turnSparkMax = new CANSparkMax(Ports.rearLeftTurn, MotorType.kBrushless);
+        cancoder = new CANcoder(Ports.rearLeftEncoder);
+        absoluteEncoderOffset = new Rotation2d(Ports.rearLeftEncoderOffset);
         break;
       case 3: // Rear Right
-        driveSparkMax = new CANSparkMax(4, MotorType.kBrushless);
-        turnSparkMax = new CANSparkMax(5, MotorType.kBrushless);
-        cancoder = new CANcoder(23);
-        absoluteEncoderOffset = new Rotation2d(194); // MUST BE CALIBRATED
+        driveSparkMax = new CANSparkMax(Ports.rearRightDrive, MotorType.kBrushless);
+        turnSparkMax = new CANSparkMax(Ports.rearRightTurn, MotorType.kBrushless);
+        cancoder = new CANcoder(Ports.rearRightEncoder);
+        absoluteEncoderOffset = new Rotation2d(Ports.rearRightEncoderOffset);
         break;
       default:
         throw new RuntimeException("Invalid module index");

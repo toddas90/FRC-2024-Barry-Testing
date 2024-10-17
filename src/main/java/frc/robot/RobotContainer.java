@@ -70,8 +70,8 @@ public class RobotContainer {
                 new ModuleIOSparkMax(1),
                 new ModuleIOSparkMax(2),
                 new ModuleIOSparkMax(3));
-        intake = new Flywheel(new FlywheelIOSparkMax());
-        shooter = new Flywheel(new FlywheelIOSparkMax());
+        intake = new Flywheel(new FlywheelIOSparkMax(1));
+        shooter = new Flywheel(new FlywheelIOSparkMax(0));
         break;
 
       case SIM:

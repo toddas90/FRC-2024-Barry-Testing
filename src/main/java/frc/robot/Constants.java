@@ -34,4 +34,31 @@ public final class Constants {
     /** Replaying from a log file. */
     REPLAY
   }
+
+  public static class Ports {
+    // Intake and Shooter
+    public static int intake = 11;
+    public static int shooter = 13;
+
+    // Swerve Drive
+    public static int frontLeftDrive = 8;
+    public static int frontLeftTurn = 9;
+    public static int frontLeftEncoder = 22;
+    public static int frontLeftEncoderOffset = 251;
+
+    public static int frontRightDrive = 2;
+    public static int frontRightTurn = 3;
+    public static int frontRightEncoder = 24;
+    public static int frontRightEncoderOffset = 218;
+
+    public static int rearLeftDrive = 6;
+    public static int rearLeftTurn = 7;
+    public static int rearLeftEncoder = 21;
+    public static int rearLeftEncoderOffset = 105;
+
+    public static int rearRightDrive = 4;
+    public static int rearRightTurn = 5;
+    public static int rearRightEncoder = 23;
+    public static int rearRightEncoderOffset = 194;
+  }
 }
