@@ -46,15 +46,17 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  private final Flywheel flywheel;
+  private final Flywheel intake;
+  private final Flywheel shooter;
 
   // Controller
-  private final CommandXboxController controller = new CommandXboxController(0);
+  private final CommandXboxController driver = new CommandXboxController(0);
+  private final CommandXboxController operator = new CommandXboxController(1);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
   private final LoggedDashboardNumber flywheelSpeedInput =
-      new LoggedDashboardNumber("Flywheel Speed", 1500.0);
+      new LoggedDashboardNumber("Shooter Speed", 1500.0);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -68,14 +70,8 @@ public class RobotContainer {
                 new ModuleIOSparkMax(1),
                 new ModuleIOSparkMax(2),
                 new ModuleIOSparkMax(3));
-        flywheel = new Flywheel(new FlywheelIOSparkMax());
-        // drive = new Drive(
-        // new GyroIOPigeon2(true),
-        // new ModuleIOTalonFX(0),
-        // new ModuleIOTalonFX(1),
-        // new ModuleIOTalonFX(2),
-        // new ModuleIOTalonFX(3));
-        // flywheel = new Flywheel(new FlywheelIOTalonFX());
+        intake = new Flywheel(new FlywheelIOSparkMax());
+        shooter = new Flywheel(new FlywheelIOSparkMax());
         break;
 
       case SIM:
@@ -87,7 +83,8 @@ public class RobotContainer {
                 new ModuleIOSim(),
                 new ModuleIOSim(),
                 new ModuleIOSim());
-        flywheel = new Flywheel(new FlywheelIOSim());
+        intake = new Flywheel(new FlywheelIOSim());
+        shooter = new Flywheel(new FlywheelIOSim());
         break;
 
       default:
@@ -99,15 +96,16 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        flywheel = new Flywheel(new FlywheelIO() {});
+        intake = new Flywheel(new FlywheelIO() {});
+        shooter = new Flywheel(new FlywheelIO() {});
         break;
     }
 
     // Set up auto routines
     NamedCommands.registerCommand(
-        "Run Flywheel",
+        "Run Shooter",
         Commands.startEnd(
-                () -> flywheel.runVelocity(flywheelSpeedInput.get()), flywheel::stop, flywheel)
+                () -> shooter.runVelocity(flywheelSpeedInput.get()), shooter::stop, shooter)
             .withTimeout(5.0));
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
@@ -123,15 +121,15 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
     autoChooser.addOption(
-        "Flywheel SysId (Quasistatic Forward)",
-        flywheel.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+        "Shooter SysId (Quasistatic Forward)",
+        shooter.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
     autoChooser.addOption(
-        "Flywheel SysId (Quasistatic Reverse)",
-        flywheel.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+        "Shooter SysId (Quasistatic Reverse)",
+        shooter.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
     autoChooser.addOption(
-        "Flywheel SysId (Dynamic Forward)", flywheel.sysIdDynamic(SysIdRoutine.Direction.kForward));
+        "Shooter SysId (Dynamic Forward)", shooter.sysIdDynamic(SysIdRoutine.Direction.kForward));
     autoChooser.addOption(
-        "Flywheel SysId (Dynamic Reverse)", flywheel.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+        "Shooter SysId (Dynamic Reverse)", shooter.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     // Configure the button bindings
     configureButtonBindings();
@@ -147,11 +145,13 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> controller.getLeftY(),
-            () -> controller.getLeftX(),
-            () -> -controller.getRightX()));
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
-    controller
+            () -> driver.getLeftY(),
+            () -> driver.getLeftX(),
+            () -> -driver.getRightX()));
+
+    // ===== Driver Controls =====
+    driver.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    driver
         .b()
         .onTrue(
             Commands.runOnce(
@@ -160,11 +160,30 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
-    controller
-        .a()
+    // ===========================
+
+    // ===== Operator Controls =====
+    operator
+        .a() // Run the shooter in reverse
         .whileTrue(
             Commands.startEnd(
-                () -> flywheel.runVelocity(flywheelSpeedInput.get()), flywheel::stop, flywheel));
+                () -> shooter.runVelocity(-flywheelSpeedInput.get()), shooter::stop, shooter));
+    operator
+        .y() // Run the shooter forward
+        .whileTrue(
+            Commands.startEnd(
+                () -> shooter.runVelocity(flywheelSpeedInput.get()), shooter::stop, shooter));
+    operator
+        .x() // Run the intake in reverse
+        .whileTrue(
+            Commands.startEnd(
+                () -> intake.runVelocity(-flywheelSpeedInput.get()), intake::stop, intake));
+    operator
+        .b() // Run the intake forward
+        .whileTrue(
+            Commands.startEnd(
+                () -> intake.runVelocity(flywheelSpeedInput.get()), intake::stop, intake));
+    // ==============================
   }
 
   /**
